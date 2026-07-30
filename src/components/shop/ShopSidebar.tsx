@@ -12,25 +12,36 @@ interface ShopSidebarProps {
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      width="14"
-      height="14"
+      width="10"
+      height="10"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+      className="transition-transform duration-300 flex-shrink-0 text-gray-400"
+      style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}
     >
       <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 }
 
-export default function ShopSidebar({ selectedCategory, onCategoryChange, onClearFilters }: ShopSidebarProps) {
+export default function ShopSidebar({
+  selectedCategory,
+  onCategoryChange,
+  onClearFilters,
+}: ShopSidebarProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(["category"])
+    new Set(["category", "price"])
   );
+
+  // States are kept to simulate real filters visually
+  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(new Set());
+  const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set());
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
@@ -44,142 +55,224 @@ export default function ShopSidebar({ selectedCategory, onCategoryChange, onClea
     });
   };
 
-  return (
-    <div className="lg:sticky lg:top-[110px]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-[13px] font-semibold text-fg tracking-[0.12em] uppercase">
-          Filter & Sort
-        </h2>
-        <button
-          onClick={onClearFilters}
-          className="text-[12px] text-muted hover:text-fg transition-colors"
-        >
-          Clear All
-        </button>
-      </div>
+  const toggleSize = (size: string) => {
+    setSelectedSizes((prev) => {
+      const next = new Set(prev);
+      if (next.has(size)) next.delete(size);
+      else next.add(size);
+      return next;
+    });
+  };
 
-      {/* Category */}
-      <div className="border-t border-border">
+  const toggleColor = (color: string) => {
+    setSelectedColors((prev) => {
+      const next = new Set(prev);
+      if (next.has(color)) next.delete(color);
+      else next.add(color);
+      return next;
+    });
+  };
+
+  const hasActiveFilters = selectedSizes.size > 0 || selectedColors.size > 0 || priceMin || priceMax || selectedCategory !== "All";
+
+  const handleClearAll = () => {
+    onClearFilters();
+    setSelectedSizes(new Set());
+    setSelectedColors(new Set());
+    setPriceMin("");
+    setPriceMax("");
+  };
+
+  const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
+  const colors = [
+    { value: "#0A0A0A", label: "Black" },
+    { value: "#333333", label: "Charcoal" },
+    { value: "#CAC9C7", label: "Grey" },
+    { value: "#F7F6F2", label: "White" },
+    { value: "#8E3B3B", label: "Red" }, // Adjusted to match the new accent
+  ];
+
+  return (
+    <div className="text-[12px] font-normal tracking-wide">
+      {/* Active filter count + Apply/Clear */}
+      {hasActiveFilters && (
+        <div className="flex justify-between w-full mb-6 py-2 border-b border-[var(--color-border)]">
+          <span className="text-gray-400">{hasActiveFilters ? "FILTERS ACTIVE" : ""}</span>
+          <button
+            onClick={handleClearAll}
+            className="text-[10px] tracking-widest uppercase cursor-pointer hover:text-[var(--color-accent)] transition-colors"
+          >
+            Clear All
+          </button>
+        </div>
+      )}
+
+      {/* Category Accordion */}
+      <div className="border-b border-[var(--color-border)]">
         <button
           onClick={() => toggleSection("category")}
-          className="flex items-center justify-between w-full py-5 text-[12px] font-semibold text-fg tracking-[0.12em] uppercase"
+          className="flex items-center justify-between w-full py-4 capitalize tracking-wide font-normal text-[12px]"
           aria-expanded={expandedSections.has("category")}
         >
-          Category
+          <span>Category</span>
           <ChevronIcon expanded={expandedSections.has("category")} />
         </button>
-        {expandedSections.has("category") && (
-          <div className="pb-5 space-y-3">
-            {shopCategories.map((cat) => (
-              <label
-                key={cat.name}
-                className="flex items-center gap-3 cursor-pointer group"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedCategory === cat.name}
-                  onChange={() => onCategoryChange(cat.name)}
-                  className="w-4 h-4 border-border accent-fg cursor-pointer"
-                />
-                <span className="text-[14px] text-muted group-hover:text-fg transition-colors">
-                  {cat.name} ({cat.count})
+
+        <div className={`overflow-hidden transition-all duration-300 ${expandedSections.has("category") ? "max-h-[300px] mb-4 opacity-100" : "max-h-0 opacity-0"}`}>
+          {shopCategories.map((cat) => (
+            <div
+              key={cat.name}
+              className="flex items-center justify-between cursor-pointer py-1.5 group"
+              onClick={() => onCategoryChange(cat.name)}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-3 h-3 border flex items-center justify-center transition-colors ${selectedCategory === cat.name ? "border-black bg-black" : "border-gray-300 bg-transparent"}`}
+                >
+                  {selectedCategory === cat.name && (
+                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+                <span
+                  className="text-[12px] font-normal tracking-wide transition-colors group-hover:text-black"
+                  style={{ color: selectedCategory === cat.name ? "var(--color-fg)" : "var(--color-muted)" }}
+                >
+                  {cat.name.toUpperCase()}
                 </span>
-              </label>
-            ))}
-          </div>
-        )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Size */}
-      <div className="border-t border-border">
+      {/* Size Accordion */}
+      <div className="border-b border-[var(--color-border)]">
         <button
           onClick={() => toggleSection("size")}
-          className="flex items-center justify-between w-full py-5 text-[12px] font-semibold text-fg tracking-[0.12em] uppercase"
+          className="flex items-center justify-between w-full py-4 capitalize tracking-wide font-normal text-[12px]"
           aria-expanded={expandedSections.has("size")}
         >
-          Size
+          <span>Size</span>
           <ChevronIcon expanded={expandedSections.has("size")} />
         </button>
-        {expandedSections.has("size") && (
-          <div className="pb-5">
-            <div className="flex flex-wrap gap-2.5">
-              {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
-                <button
+
+        <div className={`overflow-hidden transition-all duration-300 ${expandedSections.has("size") ? "max-h-[300px] mb-4 opacity-100" : "max-h-0 opacity-0"}`}>
+           <div className="flex flex-col gap-1.5">
+              {sizes.map((size) => (
+                <div
                   key={size}
-                  className="px-3.5 py-2 text-[12px] font-medium text-muted border border-border hover:border-fg hover:text-fg transition-colors"
+                  className="flex items-center justify-between cursor-pointer py-1 group"
+                  onClick={() => toggleSize(size)}
                 >
-                  {size}
-                </button>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-3 h-3 border flex items-center justify-center transition-colors ${selectedSizes.has(size) ? "border-black bg-black" : "border-gray-300 bg-transparent"}`}
+                    >
+                      {selectedSizes.has(size) && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <span
+                      className="text-[12px] font-normal tracking-wide transition-colors group-hover:text-black"
+                      style={{ color: selectedSizes.has(size) ? "var(--color-fg)" : "var(--color-muted)" }}
+                    >
+                      {size}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Color */}
-      <div className="border-t border-border">
+      {/* Color Accordion */}
+      <div className="border-b border-[var(--color-border)]">
         <button
           onClick={() => toggleSection("color")}
-          className="flex items-center justify-between w-full py-5 text-[12px] font-semibold text-fg tracking-[0.12em] uppercase"
+          className="flex items-center justify-between w-full py-4 capitalize tracking-wide font-normal text-[12px]"
           aria-expanded={expandedSections.has("color")}
         >
-          Color
+          <span>Color</span>
           <ChevronIcon expanded={expandedSections.has("color")} />
         </button>
-        {expandedSections.has("color") && (
-          <div className="pb-5">
-            <div className="flex flex-wrap gap-2.5">
-              {["#0a0a0a", "#333333", "#6b6b6b", "#fafafa", "#c8102e"].map((color) => (
-                <button
-                  key={color}
-                  className="w-7 h-7 rounded-full border border-border hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                  aria-label={`Color: ${color}`}
-                />
+
+        <div className={`overflow-hidden transition-all duration-300 ${expandedSections.has("color") ? "max-h-[300px] mb-4 opacity-100" : "max-h-0 opacity-0"}`}>
+           <div className="flex flex-col gap-1.5">
+              {colors.map((c) => (
+                <div
+                  key={c.value}
+                  className="flex items-center justify-between cursor-pointer py-1 group"
+                  onClick={() => toggleColor(c.value)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-3 h-3 border flex items-center justify-center transition-colors ${selectedColors.has(c.value) ? "border-black bg-black" : "border-gray-300 bg-transparent"}`}
+                    >
+                      {selectedColors.has(c.value) && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <span
+                      className="text-[12px] font-normal tracking-wide transition-colors group-hover:text-black"
+                      style={{ color: selectedColors.has(c.value) ? "var(--color-fg)" : "var(--color-muted)" }}
+                    >
+                      {c.label}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Price */}
-      <div className="border-t border-border">
+      {/* Price Accordion */}
+      <div className="border-b border-[var(--color-border)]">
         <button
           onClick={() => toggleSection("price")}
-          className="flex items-center justify-between w-full py-5 text-[12px] font-semibold text-fg tracking-[0.12em] uppercase"
+          className="flex items-center justify-between w-full py-4 capitalize tracking-wide font-normal text-[12px]"
           aria-expanded={expandedSections.has("price")}
         >
-          Price
+          <span>Price</span>
           <ChevronIcon expanded={expandedSections.has("price")} />
         </button>
-        {expandedSections.has("price") && (
-          <div className="pb-5">
-            <div className="flex items-center gap-3">
+
+        <div className={`overflow-hidden transition-all duration-300 ${expandedSections.has("price") ? "max-h-[300px] mb-4 opacity-100" : "max-h-0 opacity-0"}`}>
+           <div className="flex items-center gap-3 py-2">
               <input
                 type="number"
-                placeholder="Min"
-                className="w-full text-[13px] px-3 py-2.5 border border-border bg-transparent focus:outline-none focus:border-muted"
+                placeholder="MIN"
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                className="w-full text-[10px] tracking-widest px-3 py-2 bg-transparent focus:outline-none placeholder:text-gray-400"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-fg)",
+                }}
                 aria-label="Minimum price"
               />
-              <span className="text-muted text-[13px]">—</span>
+              <span className="text-gray-400">-</span>
               <input
                 type="number"
-                placeholder="Max"
-                className="w-full text-[13px] px-3 py-2.5 border border-border bg-transparent focus:outline-none focus:border-muted"
+                placeholder="MAX"
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                className="w-full text-[10px] tracking-widest px-3 py-2 bg-transparent focus:outline-none placeholder:text-gray-400"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-fg)",
+                }}
                 aria-label="Maximum price"
               />
             </div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Apply button */}
-      <div className="border-t border-border pt-6">
-        <button className="w-full py-3.5 bg-fg text-fg-light text-[12px] font-semibold tracking-[0.15em] uppercase hover:opacity-90 transition-opacity">
-          Apply Filters
-        </button>
-      </div>
     </div>
   );
 }

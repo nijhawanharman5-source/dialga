@@ -7,19 +7,19 @@
 
 @theme inline {
   /* Colors — Warm neutral fashion palette */
-  --color-bg: #F7F6F3;
+  --color-bg: #F7F6F2;
   --color-bg-dark: #0A0A0A;
   --color-fg: #0A0A0A;
   --color-fg-light: #F7F6F3;
   --color-muted: #6F6B66;
   --color-muted-light: #9A958F;
-  --color-border: #DDDAD5;
+  --color-border: #DDDCD7;
   --color-border-dark: #2A2A2A;
   --color-surface: #F0EFED;
   --color-surface-dark: #111111;
-  --color-accent: #C8102E;
+  --color-accent: #8E3B3B;
   --color-ivory: #F1EFEB;
-  --color-product-bg: #F0EFED;
+  --color-product-bg: #F1F0EC;
 
   /* Fonts */
   --font-display: "Outfit", sans-serif;
@@ -132,17 +132,29 @@ body {
   letter-spacing: 0.01em;
 }
 
-/* --- Container --- */
+/* --- Container — Full width editorial layout --- */
 .container-main {
   width: 100%;
-  max-width: 1440px;
+  max-width: none;
   margin: 0 auto;
-  padding-left: 5vw;
-  padding-right: 5vw;
+  padding-left: clamp(1.25rem, 4vw, 4rem);
+  padding-right: clamp(1.25rem, 4vw, 4rem);
+}
+
+/* Shop-specific container override — almost full width */
+.container-shop {
+  width: 100%;
+  max-width: none;
+  padding-left: clamp(1.25rem, 3vw, 3rem);
+  padding-right: clamp(1.25rem, 3vw, 3rem);
 }
 
 @media (max-width: 768px) {
   .container-main {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .container-shop {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
   }
@@ -248,4 +260,219 @@ body {
 .mobile-menu-overlay {
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EDITORIAL SHOP — Product Grid Utilities
+   ═══════════════════════════════════════════════════════ */
+
+/* Grid density states */
+.grid-density-large .product-grid-item {
+  /* 3 columns at large desktop — products dominate */
+}
+.grid-density-standard .product-grid-item {
+  /* 4 columns standard */
+}
+.grid-density-compact .product-grid-item {
+  /* 5 columns compact */
+}
+
+/* Product quick-add reveal */
+.product-quick-add {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 250ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .product-quick-add {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Product image — editorial scale on hover */
+.product-editorial-image {
+  transition: transform 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .product-editorial-image {
+  transform: scale(1.025);
+}
+
+/* Product hover secondary image */
+.product-editorial-image .product-hover-image {
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .product-editorial-image .product-hover-image {
+  opacity: 1;
+}
+
+/* Wishlist icon reveal */
+.product-wishlist {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.group:hover .product-wishlist {
+  opacity: 1;
+}
+
+/* Product name underline on hover */
+.product-name-link {
+  position: relative;
+}
+.product-name-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: currentColor;
+  transition: width 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .product-name-link::after {
+  width: 100%;
+}
+
+/* Red accent underline for active nav */
+.nav-underline-red::after {
+  background-color: var(--color-accent);
+}
+
+/* Discount badge */
+.badge-sale {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+/* Grid density button active */
+.grid-btn-active {
+  background-color: var(--color-fg);
+  color: var(--color-bg);
+}
+
+/* Filter section styles */
+.filter-section {
+  border-top: 1px solid var(--color-border);
+}
+.filter-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.125rem 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+.filter-section-header:hover {
+  color: var(--color-accent);
+}
+.filter-options {
+  padding-bottom: 1.25rem;
+}
+
+/* Size button in filter */
+.size-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.size-btn:hover {
+  border-color: var(--color-fg);
+  color: var(--color-fg);
+}
+.size-btn.active {
+  background-color: var(--color-fg);
+  color: var(--color-bg);
+  border-color: var(--color-fg);
+}
+
+/* Color swatch button in filter */
+.color-swatch-btn {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.color-swatch-btn:hover {
+  transform: scale(1.1);
+}
+.color-swatch-btn.active {
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3px var(--color-fg);
+}
+
+/* Shop toolbar */
+.shop-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 2rem;
+}
+
+/* Save badge */
+.badge-save {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+/* Sale price — red punch */
+.price-sale {
+  color: var(--color-accent);
+}
+
+/* Original price strikethrough */
+.price-original {
+  color: var(--color-muted-light);
+  text-decoration: line-through;
+}
+
+/* Category tiles — enhanced hover */
+.category-tile-image {
+  transition: transform 500ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.group:hover .category-tile-image {
+  transform: scale(1.04);
+}
+.category-tile-arrow {
+  transition: transform 300ms cubic-bezier(0.25, 0.1, 0.25, 1), color 300ms ease;
+}
+.group:hover .category-tile-arrow {
+  transform: translateX(4px);
+  color: var(--color-accent);
+}
+.category-tile-title::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-accent);
+  transition: width 300ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  margin-top: 2px;
+}
+.group:hover .category-tile-title::after {
+  width: 100%;
+}
+
+/* Sidebar sticky */
+.sidebar-sticky {
+  position: sticky;
+  top: calc(72px + 1.5rem);
+  align-self: flex-start;
 }
